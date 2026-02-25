@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCN 監控終端 V5</title>
+    <style>
+        body { background: #0b0f1a; color: #f1f5f9; font-family: -apple-system, sans-serif; padding: 10px; margin: 0; }
+        .container { max-width: 500px; margin: auto; }
+        .card { background: #161e2e; border: 1px solid #334155; border-radius: 12px; padding: 15px; margin-bottom: 12px; position: relative; }
+        .alert-card { border: 2px solid #10b981; background: #064e3b; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+        .warning-card { border: 1px solid #fbbf24; }
+        .input-group { background: #1e293b; padding: 12px; border-radius: 8px; margin-top: 10px; }
+        input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #334155; font-size: 16px; box-sizing: border-box; background: #0f172a; color: white; }
+        .btn-add { background: #38bdf8; color: #0b0f1a; font-weight: bold; margin-top: 10px; border: none; }
+        .ticker-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 5px; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 13px; align-items: center; }
+        .ko-text { color: #10b981; font-weight: bold; }
+        .prob-badge { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
+        .high { background: #7c2d12; color: #fbbf24; }
+        .badge { font-size: 10px; padding: 2px 4px; background: #334155; color: #94a3b8; border-radius: 4px; }
+        .del-btn { background: none; border: none; color: #475569; font-size: 11px; text-decoration: underline; cursor: pointer; display: block; width: auto; margin-left: auto; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h3 style="color:#38bdf8; text-align:center;">🛡️ FCN 智能預判終端</h3>
+    
+    <div class="card">
+        <strong style="color:#38bdf8;">➕ 錄入新監控單</strong>
+        <input type="text" id="client" placeholder="客戶名稱">
+        <input type="number" id="ko_pct" placeholder="統一 KO % (例如 103)">
+        <input type="date" id="mDate" title="合約到期日">
+        <div class="input-group">
+            <input type="text" id="t1_n" placeholder="標的代碼 (如 AVGO)">
+            <input type="number" id="t1_i" placeholder="期初定價">
+            <input type="date" id="t1_o" title="觀察結束日">
+            <input type="number" id="t1_v" placeholder="波動度 % (預設 30)" value="30">
+        </div>
+        <button class="btn-add" onclick="addEntry()">開始動態監控</button>
+    </div>
+
+    <div id="display_list"></div>
+</div>
+
+<script>
+    // 1. 金融數學模組：計算 Hitting Probability
+    function nCDF(x){var t=1/(1+0.2315419*Math.abs(x));var d=0.3989423*Math.exp(-x*x/2);var p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return(x>0)?(1-p):p;}
+    function getProb(S,H,v,d){if(!S||!H||S>=H)return 100;var T=d/365,sig=v/100;var d2=(Math.log(H/S)-(-0.5*sig*sig)*T)/(sig*Math.sqrt(T));return(2*(1-nCDF(d2))*100).toFixed(1);}
+
+    // 2. 資料庫模組：手機本地保存
+    let db = JSON.parse(localStorage.getItem('fcn_final_db') || '[]');
+
+    async function addEntry() {
+        const entry = {
+            id: Date.now(),
+            client: document.getElementById('client').value,
+            ko_pct: parseFloat(document.getElementById('ko_pct').value),
+            mDate: document.getElementById('mDate').value,
+            tickers: [{
+                sym: document.getElementById('t1_n').value.toUpperCase(),
+                init: parseFloat(document.getElementById('t1_i').value),
+                obs: document.getElementById('t1_o').value,
+                vol: parseFloat(document.getElementById('t1_v').value),
+                isKO: false, prob: 0, current: 0
+            }]
+        };
+        db.push(entry);
+        save();
+        location.reload(); // 重新整理啟動自動更新
+    }
+
+    // 3. 數據抓取：自動對接市場報價
+    async function refreshPrices() {
+        const listDiv = document.getElementById('display_list');
+        listDiv.innerHTML = "<p style='text-align:center;font-size:12px;color:#94a3b8;'>📊 市場數據同步中...</p>";
+        const today = new Date();
+        
+        for (let order of db) {
+            const mDate = new Date(order.mDate);
+            const daysLeft = Math.max(1, (mDate - today) / 86400000);
+            
+            for (let t of order.tickers) {
+                try {
+                    const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${t.sym}?interval=1d&range=1d`);
+                    const data = await res.json();
+                    t.current = data.chart.result[0].indicators.quote[0].close[0].toFixed(2);
+                    const koPrice = t.init * (order.ko_pct / 100);
+                    const obsDate = new Date(t.obs);
+                    
+                    if (today >= obsDate && t.current >= koPrice) {
+                        t.isKO = true; t.prob = 100;
+                    } else {
+                        t.isKO = false; t.prob = getProb(t.current, koPrice, t.vol, daysLeft);
+                    }
+                } catch (e) { t.current = "連結中.."; }
+            }
+        }
+        save();
+        render();
+    }
+
+    function render() {
+        // 排序：已出場 > 高機率
+        db.sort((a, b) => Math.max(...b.tickers.map(t => t.prob)) - Math.max(...a.tickers.map(t => t.prob)));
+
+        document.getElementById('display_list').innerHTML = db.map(order => {
+            const isAllKO = order.tickers.every(t => t.isKO);
+            const maxP = Math.max(...order.tickers.map(t => t.prob));
+            let cardCls = "card";
+            if (isAllKO) cardCls += " alert-card";
+            else if (maxP > 70) cardCls += " warning-card";
+
+            return `
+                <div class="${cardCls}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <strong>👤 ${order.client}</strong>
+                        <span class="prob-badge ${maxP > 70 ? 'high' : ''}">
+                            ${isAllKO ? '✅ 已贖回' : '預判出場率: ' + maxP + '%'}
+                        </span>
+                    </div>
+                    ${order.tickers.map(t => `
+                        <div class="ticker-row">
+                            <span>${t.sym} <span class="badge">KO價: ${(t.init * order.ko_pct / 100).toFixed(1)}</span></span>
+                            <span>現價: ${t.current}</span>
+                            <span class="${t.isKO ? 'ko-text' : (t.prob > 70 ? 'high-prob' : '')}" style="text-align:right">
+                                ${t.isKO ? '已出場' : t.prob + '%'}
+                            </span>
+                        </div>
+                    `).join('')}
+                    <button class="del-btn" onclick="remove(${order.id})">刪除此單</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function save() { localStorage.setItem('fcn_final_db', JSON.stringify(db)); }
+    function remove(id) { if(confirm('確定刪除？')) { db = db.filter(d => d.id !== id); save(); render(); } }
+    
+    // 初始化自動刷新
+    refreshPrices();
+</script>
+</body>
+</html>
