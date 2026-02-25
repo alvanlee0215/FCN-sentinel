@@ -6,8 +6,6 @@
     <title>FCN Monitor</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FCN Monitor">
-    
     <style>
         :root { --primary: #38bdf8; --bg: #0b1120; --card: #1e293b; --accent: #10b981; }
         body { background: var(--bg); color: #f1f5f9; font-family: -apple-system, sans-serif; padding: 12px; margin: 0; padding-top: env(safe-area-inset-top); }
@@ -27,12 +25,11 @@
 </head>
 <body>
     <h2>📊 FCN MONITOR</h2>
-    
     <div class="card">
         <strong style="font-size:16px;">➕ 錄入監控目標</strong>
-        <label>客戶與編號</label><input type="text" id="c" placeholder="例如：邱姐 DSNT66029">
+        <label>客戶與編號</label><input type="text" id="c" placeholder="例如：蕭醫師">
         <div style="display:flex; gap:8px;">
-            <div style="flex:1"><label>KO %</label><input type="number" id="k" value="95"></div>
+            <div style="flex:1"><label>KO %</label><input type="number" id="k" value="100"></div>
             <div style="flex:1"><label>STRIKE %</label><input type="number" id="s" value="75"></div>
             <div style="flex:1"><label>KI %</label><input type="number" id="ki" value="55"></div>
         </div>
@@ -40,17 +37,16 @@
             <div style="flex:1"><label>利率 %</label><input type="number" id="rate"></div>
             <div style="flex:1"><label>到期日</label><input type="date" id="mDate"></div>
         </div>
-        <label>記憶比價起始日</label><input type="date" id="obs">
-        
+        <label>比價起始日 (Memory Start)</label><input type="date" id="obs">
         <div style="background:#0f172a; padding:12px; border-radius:10px; margin-top:15px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:8px; font-size:10px; color:#94a3b8; text-align:center;">
                 <span>標的</span><span>期初價</span><span>SIGMA %</span>
             </div>
-            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="MU"><input type="number" class="ti"><input type="number" class="tv" placeholder="72"></div>
-            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="TSLA"><input type="number" class="ti"><input type="number" class="tv" placeholder="49"></div>
-            <div style="display:flex; gap:5px;"><input type="text" class="tn" placeholder="NVDA"><input type="number" class="ti"><input type="number" class="tv" placeholder="40"></div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="COIN"><input type="number" class="ti"><input type="number" class="tv" value="40"></div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="TSLA"><input type="number" class="ti"><input type="number" class="tv" value="49"></div>
+            <div style="display:flex; gap:5px;"><input type="text" class="tn" placeholder="VST"><input type="number" class="ti"><input type="number" class="tv" value="49"></div>
         </div>
-        <button class="btn-main" onclick="save()">💾 儲存監控</button>
+        <button class="btn-main" onclick="save()">💾 儲存並檢查歷史紀錄</button>
     </div>
     <div id="list"></div>
 
@@ -58,36 +54,49 @@
     function nCDF(x){var t=1/(1+0.2315419*Math.abs(x));var d=0.3989423*Math.exp(-x*x/2);var p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return(x>0)?(1-p):p;}
     function getP(S,H,v,d){if(!S||!H||S>=H)return 100;var T=d/365,sig=v/100;var d2=(Math.log(H/S)-(-0.5*sig*sig)*T)/(sig*Math.sqrt(T));return(2*(1-nCDF(d2))*100).toFixed(1);}
 
-    let db = JSON.parse(localStorage.getItem('fcn_monitor_db') || '[]');
+    let db = JSON.parse(localStorage.getItem('fcn_monitor_v19_db') || '[]');
 
     async function save() {
         const tn = document.querySelectorAll('.tn'), ti = document.querySelectorAll('.ti'), tv = document.querySelectorAll('.tv');
         let ts = [];
         tn.forEach((n, i) => { if(n.value) ts.push({ n: n.value.trim().toUpperCase(), i: ti[i].value, v: tv[i].value || 40, c: 0, p: 0, m_ok: false }); });
         db.push({ id: Date.now(), c: document.getElementById('c').value, k: document.getElementById('k').value, s: document.getElementById('s').value, ki: document.getElementById('ki').value, rate: document.getElementById('rate').value, m: document.getElementById('mDate').value, o: document.getElementById('obs').value, ts: ts });
-        localStorage.setItem('fcn_monitor_db', JSON.stringify(db));
+        localStorage.setItem('fcn_monitor_v19_db', JSON.stringify(db));
         location.reload();
     }
 
     async function refreshOne(id) {
         const order = db.find(x => x.id === id);
+        const startTime = Math.floor(new Date(order.o).getTime() / 1000); // 轉為 Unix 時間戳
         const today = new Date(); today.setHours(0,0,0,0);
         const days = Math.max(1, (new Date(order.m) - today)/86400000);
+        
         for (let t of order.ts) {
             try {
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${t.n}?interval=1d&range=1d`)}`;
+                // 抓取自比價起始日以來的所有日 K 線資料
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${t.n}?period1=${startTime}&period2=${Math.floor(Date.now()/1000)}&interval=1d`)}`;
                 const res = await fetch(proxyUrl);
                 const json = await res.json();
                 const data = JSON.parse(json.contents);
-                const q = data.chart.result[0].indicators.quote[0];
-                t.c = (q.close[q.close.length-1] || q.open[q.open.length-1]).toFixed(2);
+                const quotes = data.chart.result[0].indicators.quote[0];
+                
+                // 找出這段時間內的最高收盤價
+                const historicalCloses = quotes.close.filter(c => c != null);
+                const maxClose = Math.max(...historicalCloses);
+                const currentPrice = historicalCloses[historicalCloses.length - 1];
+                
+                t.c = currentPrice.toFixed(2);
                 const kP = t.i * (order.k / 100);
-                const oS = new Date(order.o); oS.setHours(0,0,0,0);
-                if (t.m_ok || (today >= oS && parseFloat(t.c) >= kP)) { t.m_ok = true; t.p = 100; }
-                else { t.p = getP(t.c, kP, t.v, days); }
-            } catch(e) { t.c = "OFFLINE"; }
+                
+                // 翻舊帳：只要歷史收盤曾經 >= KO 價，就鎖定！
+                if (t.m_ok || maxClose >= kP) { 
+                    t.m_ok = true; t.p = 100; 
+                } else {
+                    t.p = getP(t.c, kP, t.v, days);
+                }
+            } catch(e) { t.c = "抓取失敗"; }
         }
-        localStorage.setItem('fcn_monitor_db', JSON.stringify(db));
+        localStorage.setItem('fcn_monitor_v19_db', JSON.stringify(db));
         render();
     }
 
@@ -96,19 +105,19 @@
             <div class="card ${o.ts.every(t=>t.m_ok) ? 'alert-card' : ''}">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div><strong>👤 ${o.c}</strong><br><small style="color:#94a3b8;">${o.rate}% | 到期: ${o.m}</small></div>
-                    <button class="refresh-btn" onclick="refreshOne(${o.id})">⚡ 更新</button>
+                    <button class="refresh-btn" onclick="refreshOne(${o.id})">⚡ 翻舊帳更新</button>
                 </div>
                 ${o.ts.map(t => `
                     <div class="ticker-row">
                         <span>${t.n}<br><span class="badge">S:${(t.i*(o.s/100)).toFixed(1)}</span> <span class="badge ki">KI:${(t.i*(o.ki/100)).toFixed(1)}</span></span>
                         <span style="text-align:center">現價: ${t.c || '---'}</span>
-                        <span style="text-align:right;">${t.m_ok ? '<span class="lock-status">已記憶鎖定</span>' : '<span style="color:var(--primary);font-weight:bold;">'+t.p+'%</span>'}</span>
+                        <span style="text-align:right;">${t.m_ok ? '<span class="lock-status">已鎖定</span>' : '<span style="color:var(--primary);font-weight:bold;">'+t.p+'%</span>'}</span>
                     </div>
                 `).join('')}
                 <button class="del-btn" onclick="rem(${o.id})">🗑️ 移除</button>
             </div>`).join('');
     }
-    function rem(id){ if(confirm('移除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_monitor_db', JSON.stringify(db)); render(); }}
+    function rem(id){ if(confirm('移除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_monitor_v19_db', JSON.stringify(db)); render(); }}
     render();
 </script>
 </body>
