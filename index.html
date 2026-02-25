@@ -3,141 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 監控終端 V5</title>
+    <title>FCN 監控終端 (標籤強化版)</title>
     <style>
-        body { background: #0b0f1a; color: #f1f5f9; font-family: -apple-system, sans-serif; padding: 10px; margin: 0; }
-        .container { max-width: 500px; margin: auto; }
-        .card { background: #161e2e; border: 1px solid #334155; border-radius: 12px; padding: 15px; margin-bottom: 12px; position: relative; }
-        .alert-card { border: 2px solid #10b981; background: #064e3b; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
-        .warning-card { border: 1px solid #fbbf24; }
-        .input-group { background: #1e293b; padding: 12px; border-radius: 8px; margin-top: 10px; }
-        input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #334155; font-size: 16px; box-sizing: border-box; background: #0f172a; color: white; }
-        .btn-add { background: #38bdf8; color: #0b0f1a; font-weight: bold; margin-top: 10px; border: none; }
-        .ticker-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 5px; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 13px; align-items: center; }
+        body { background: #0b1120; color: #f1f5f9; font-family: -apple-system, sans-serif; padding: 12px; margin: 0; }
+        .card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #334155; }
+        .alert-card { border: 2px solid #10b981; background: #064e3b; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+        .warning-card { border: 2px solid #f59e0b; }
+        label { display: block; font-size: 13px; color: #38bdf8; margin-bottom: 4px; margin-top: 10px; font-weight: bold; }
+        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 16px; }
+        .btn-add { background: #38bdf8; color: #0b1120; border: none; padding: 16px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        .ticker-group { background: #0f172a; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #1e293b; }
+        .ticker-row { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 8px; padding: 10px 0; border-bottom: 1px solid #1e293b; font-size: 13px; align-items: center; }
         .ko-text { color: #10b981; font-weight: bold; }
-        .prob-badge { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
-        .high { background: #7c2d12; color: #fbbf24; }
-        .badge { font-size: 10px; padding: 2px 4px; background: #334155; color: #94a3b8; border-radius: 4px; }
-        .del-btn { background: none; border: none; color: #475569; font-size: 11px; text-decoration: underline; cursor: pointer; display: block; width: auto; margin-left: auto; }
+        .del-btn { background: none; border: none; color: #475569; font-size: 11px; text-decoration: underline; margin-top: 10px; width: 100%; text-align: right; }
+        .hint { font-size: 11px; color: #94a3b8; margin-top: 2px; }
     </style>
 </head>
 <body>
-<div class="container">
-    <h3 style="color:#38bdf8; text-align:center;">🛡️ FCN 智能預判終端</h3>
+    <h3 style="color:#38bdf8; text-align:center; margin-bottom:20px;">🛡️ FCN 智能監控終端</h3>
     
     <div class="card">
-        <strong style="color:#38bdf8;">➕ 錄入新監控單</strong>
-        <input type="text" id="client" placeholder="客戶名稱">
-        <input type="number" id="ko_pct" placeholder="統一 KO % (例如 103)">
-        <input type="date" id="mDate" title="合約到期日">
-        <div class="input-group">
-            <input type="text" id="t1_n" placeholder="標的代碼 (如 AVGO)">
-            <input type="number" id="t1_i" placeholder="期初定價">
-            <input type="date" id="t1_o" title="觀察結束日">
-            <input type="number" id="t1_v" placeholder="波動度 % (預設 30)" value="30">
+        <strong style="font-size:18px;">➕ 錄入新合約</strong>
+        
+        <label>客戶名稱 / 產品編號</label>
+        <input type="text" id="c" placeholder="例如：陳先生 DSNT72508">
+        
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1">
+                <label>KO 觸發 %</label>
+                <input type="number" id="k" value="100">
+                <div class="hint">通常為 100</div>
+            </div>
+            <div style="flex:1">
+                <label>合約到期日</label>
+                <input type="date" id="m">
+            </div>
         </div>
-        <button class="btn-add" onclick="addEntry()">開始動態監控</button>
+        
+        <label>首個觀察期結束日 (每日比價起始日)</label>
+        <input type="date" id="common_obs">
+        <div class="hint">過此日期後，App 將啟動每日比價</div>
+
+        <div class="ticker-group">
+            <div style="color:#94a3b8; font-size:12px; margin-bottom:10px;">請輸入連結標的 (最多三檔)：</div>
+            
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <div style="flex:1"><label>標的 1 代碼</label><input type="text" class="tn" placeholder="AMD"></div>
+                <div style="flex:1"><label>期初定價 1</label><input type="number" class="ti" placeholder="253.73"></div>
+            </div>
+            
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <div style="flex:1"><label>標的 2 代碼</label><input type="text" class="tn" placeholder="MU"></div>
+                <div style="flex:1"><label>期初定價 2</label><input type="number" class="ti" placeholder="397.58"></div>
+            </div>
+
+            <div style="display:flex; gap:8px;">
+                <div style="flex:1"><label>標的 3 代碼</label><input type="text" class="tn" placeholder="TSLA"></div>
+                <div style="flex:1"><label>期初定價 3</label><input type="number" class="ti" placeholder="449.36"></div>
+            </div>
+        </div>
+
+        <button class="btn-add" onclick="save()">💾 儲存並開始每日監控</button>
     </div>
 
-    <div id="display_list"></div>
-</div>
+    <div id="list"></div>
 
 <script>
-    // 1. 金融數學模組：計算 Hitting Probability
+    // 金融運算邏輯 (不變)
     function nCDF(x){var t=1/(1+0.2315419*Math.abs(x));var d=0.3989423*Math.exp(-x*x/2);var p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return(x>0)?(1-p):p;}
-    function getProb(S,H,v,d){if(!S||!H||S>=H)return 100;var T=d/365,sig=v/100;var d2=(Math.log(H/S)-(-0.5*sig*sig)*T)/(sig*Math.sqrt(T));return(2*(1-nCDF(d2))*100).toFixed(1);}
+    function getP(S,H,v,d){if(!S||!H||S>=H)return 100;var T=d/365,sig=v/100;var d2=(Math.log(H/S)-(-0.5*sig*sig)*T)/(sig*Math.sqrt(T));return(2*(1-nCDF(d2))*100).toFixed(1);}
 
-    // 2. 資料庫模組：手機本地保存
-    let db = JSON.parse(localStorage.getItem('fcn_final_db') || '[]');
+    let db = JSON.parse(localStorage.getItem('fcn_pro_vfinal') || '[]');
 
-    async function addEntry() {
-        const entry = {
-            id: Date.now(),
-            client: document.getElementById('client').value,
-            ko_pct: parseFloat(document.getElementById('ko_pct').value),
-            mDate: document.getElementById('mDate').value,
-            tickers: [{
-                sym: document.getElementById('t1_n').value.toUpperCase(),
-                init: parseFloat(document.getElementById('t1_i').value),
-                obs: document.getElementById('t1_o').value,
-                vol: parseFloat(document.getElementById('t1_v').value),
-                isKO: false, prob: 0, current: 0
-            }]
-        };
-        db.push(entry);
-        save();
-        location.reload(); // 重新整理啟動自動更新
+    async function save() {
+        const tn = document.querySelectorAll('.tn'), ti = document.querySelectorAll('.ti');
+        const obs = document.getElementById('common_obs').value;
+        let ts = [];
+        tn.forEach((n, i) => {
+            if(n.value) ts.push({ n: n.value.toUpperCase(), i: ti[i].value, o: obs, c: 0, ko: false, p: 0 });
+        });
+        db.push({ id: Date.now(), c: document.getElementById('c').value, k: document.getElementById('k').value, m: document.getElementById('m').value, ts: ts });
+        localStorage.setItem('fcn_pro_vfinal', JSON.stringify(db));
+        location.reload();
     }
 
-    // 3. 數據抓取：自動對接市場報價
-    async function refreshPrices() {
-        const listDiv = document.getElementById('display_list');
-        listDiv.innerHTML = "<p style='text-align:center;font-size:12px;color:#94a3b8;'>📊 市場數據同步中...</p>";
-        const today = new Date();
-        
-        for (let order of db) {
-            const mDate = new Date(order.mDate);
-            const daysLeft = Math.max(1, (mDate - today) / 86400000);
-            
-            for (let t of order.tickers) {
+    async function refresh() {
+        const today = new Date(); today.setHours(0,0,0,0);
+        for (let o of db) {
+            const days = Math.max(1, (new Date(o.m) - today)/86400000);
+            for (let t of o.ts) {
                 try {
-                    const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${t.sym}?interval=1d&range=1d`);
+                    const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${t.n}?interval=1d&range=1d`);
                     const data = await res.json();
-                    t.current = data.chart.result[0].indicators.quote[0].close[0].toFixed(2);
-                    const koPrice = t.init * (order.ko_pct / 100);
-                    const obsDate = new Date(t.obs);
-                    
-                    if (today >= obsDate && t.current >= koPrice) {
-                        t.isKO = true; t.prob = 100;
-                    } else {
-                        t.isKO = false; t.prob = getProb(t.current, koPrice, t.vol, daysLeft);
-                    }
-                } catch (e) { t.current = "連結中.."; }
+                    t.c = data.chart.result[0].indicators.quote[0].close[0].toFixed(2);
+                    const kP = t.i * (o.k / 100);
+                    const oS = new Date(t.o); oS.setHours(0,0,0,0);
+                    if (today >= oS && parseFloat(t.c) >= kP) { t.ko = true; t.p = 100; }
+                    else { t.ko = false; t.p = getP(t.c, kP, 30, days); }
+                } catch(e) { t.c = "---"; }
             }
         }
-        save();
+        localStorage.setItem('fcn_pro_vfinal', JSON.stringify(db));
         render();
     }
 
     function render() {
-        // 排序：已出場 > 高機率
-        db.sort((a, b) => Math.max(...b.tickers.map(t => t.prob)) - Math.max(...a.tickers.map(t => t.prob)));
-
-        document.getElementById('display_list').innerHTML = db.map(order => {
-            const isAllKO = order.tickers.every(t => t.isKO);
-            const maxP = Math.max(...order.tickers.map(t => t.prob));
-            let cardCls = "card";
-            if (isAllKO) cardCls += " alert-card";
-            else if (maxP > 70) cardCls += " warning-card";
-
+        db.sort((a,b) => Math.max(...b.ts.map(t=>t.p)) - Math.max(...a.ts.map(t=>t.p)));
+        document.getElementById('list').innerHTML = db.map(o => {
+            const isAllKO = o.ts.every(t => t.ko);
+            const maxP = Math.max(...o.ts.map(t => t.p));
             return `
-                <div class="${cardCls}">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                        <strong>👤 ${order.client}</strong>
-                        <span class="prob-badge ${maxP > 70 ? 'high' : ''}">
-                            ${isAllKO ? '✅ 已贖回' : '預判出場率: ' + maxP + '%'}
+                <div class="card ${isAllKO ? 'alert-card' : (maxP > 80 ? 'warning-card' : '')}">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <strong>👤 ${o.c}</strong>
+                        <span style="font-size:12px; font-weight:bold; color:${isAllKO ? '#10b981' : (maxP > 80 ? '#fbbf24' : '#38bdf8')}">
+                            ${isAllKO ? '✅ 全單已贖回' : '預估出場率: ' + maxP + '%'}
                         </span>
                     </div>
-                    ${order.tickers.map(t => `
+                    ${o.ts.map(t => `
                         <div class="ticker-row">
-                            <span>${t.sym} <span class="badge">KO價: ${(t.init * order.ko_pct / 100).toFixed(1)}</span></span>
-                            <span>現價: ${t.current}</span>
-                            <span class="${t.isKO ? 'ko-text' : (t.prob > 70 ? 'high-prob' : '')}" style="text-align:right">
-                                ${t.isKO ? '已出場' : t.prob + '%'}
-                            </span>
+                            <span style="${t.ko ? 'text-decoration:line-through; opacity:0.5' : ''}">${t.n}</span>
+                            <span style="text-align:center">現價: ${t.c}</span>
+                            <span style="text-align:right; font-weight:bold; color:${t.ko ? '#10b981' : (t.p > 80 ? '#fbbf24' : '#38bdf8')}">${t.ko ? '已達標' : t.p+'%'}</span>
                         </div>
                     `).join('')}
-                    <button class="del-btn" onclick="remove(${order.id})">刪除此單</button>
+                    <button class="del-btn" onclick="rem(${o.id})">🗑️ 刪除合約</button>
                 </div>
             `;
         }).join('');
     }
-
-    function save() { localStorage.setItem('fcn_final_db', JSON.stringify(db)); }
-    function remove(id) { if(confirm('確定刪除？')) { db = db.filter(d => d.id !== id); save(); render(); } }
-    
-    // 初始化自動刷新
-    refreshPrices();
+    function rem(id) { if(confirm('確定要刪除這筆資料嗎？')) { db = db.filter(x=>x.id!==id); localStorage.setItem('fcn_pro_vfinal', JSON.stringify(db)); render(); } }
+    refresh();
 </script>
 </body>
 </html>
