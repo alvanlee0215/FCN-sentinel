@@ -3,71 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN Memory DKO 終極終端</title>
+    <title>FCN Memory 監控 V12</title>
     <style>
         body { background: #0b1120; color: #f1f5f9; font-family: -apple-system, sans-serif; padding: 12px; margin: 0; }
         .card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #334155; position: relative; }
         .alert-card { border: 2px solid #10b981; background: #064e3b; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
-        .warning-card { border: 2px solid #f59e0b; }
         label { display: block; font-size: 13px; color: #38bdf8; margin-bottom: 4px; margin-top: 10px; font-weight: bold; }
         input { background: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 16px; }
         .btn-main { background: #38bdf8; color: #0b1120; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; font-size: 18px; margin-top: 20px; }
-        .ticker-group { background: #0f172a; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #1e293b; }
         .ticker-row { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 8px; padding: 12px 0; border-bottom: 1px solid #334155; font-size: 12px; align-items: center; }
         .badge { font-size: 9px; padding: 2px 4px; border-radius: 4px; border: 1px solid #475569; color: #94a3b8; display: inline-block; margin-top: 2px; }
-        .stk { border-color: #38bdf8; color: #38bdf8; }
-        .ki { border-color: #f87171; color: #f87171; }
         .refresh-btn { background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8; font-size: 11px; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-        .del-btn { background: none; border: none; color: #475569; font-size: 11px; text-decoration: underline; margin-top: 12px; width: 100%; text-align: right; }
         .lock-status { color: #10b981; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
-    <h3 style="color:#38bdf8; text-align:center; margin-bottom:20px;">🛡️ FCN 記憶機制監控系統</h3>
-    
+    <h3 style="color:#38bdf8; text-align:center; margin-bottom:20px;">🛡️ FCN 記憶監控 (強效連線版)</h3>
     <div class="card">
-        <strong style="font-size:18px;">➕ 錄入邱姐合約 (DSNT66029)</strong>
-        <label>客戶名稱 / 產品編號</label>
-        <input type="text" id="c" placeholder="例如：邱姐 DSNT66029">
-        
+        <strong>➕ 錄入邱姐單 (DSNT66029)</strong>
+        <label>客戶名稱 / 產品編號</label><input type="text" id="c" placeholder="邱姐 DSNT66029">
         <div style="display:flex; gap:8px;">
-            <div style="flex:1"><label>觸發 (KO) %</label><input type="number" id="k" value="95"></div>
-            <div style="flex:1"><label>執行 (Strike) %</label><input type="number" id="s" value="75"></div>
-            <div style="flex:1"><label>下限 (KI) %</label><input type="number" id="ki" value="55"></div>
+            <div style="flex:1"><label>KO %</label><input type="number" id="k" value="95"></div>
+            <div style="flex:1"><label>Strike %</label><input type="number" id="s" value="75"></div>
+            <div style="flex:1"><label>KI %</label><input type="number" id="ki" value="55"></div>
         </div>
-
         <div style="display:flex; gap:10px;">
             <div style="flex:1"><label>年化利率 %</label><input type="number" id="rate" value="16.48"></div>
-            <div style="flex:1"><label>最終到期日</label><input type="date" id="mDate"></div>
+            <div style="flex:1"><label>到期日</label><input type="date" id="mDate"></div>
         </div>
-        
-        <label>首個觀察期結束日 (比價起始日)</label>
-        <input type="date" id="obs">
-
-        <div class="ticker-group">
-            <div style="color:#94a3b8; font-size:11px; margin-bottom:10px;">請輸入標的代碼與期初價：</div>
-            <div style="display:flex; gap:8px; margin-bottom:8px;"><input type="text" class="tn" placeholder="MU"><input type="number" class="ti" placeholder="220.1"></div>
-            <div style="display:flex; gap:8px; margin-bottom:8px;"><input type="text" class="tn" placeholder="VST"><input type="number" class="ti" placeholder="199.3"></div>
-            <div style="display:flex; gap:8px;"><input type="text" class="tn" placeholder="WDC"><input type="number" class="ti" placeholder="126.67"></div>
+        <label>比價起始日 (Memory Start)</label><input type="date" id="obs">
+        <div style="background:#0f172a; padding:10px; border-radius:8px; margin-top:10px;">
+            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="MU"><input type="number" class="ti"></div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="VST"><input type="number" class="ti"></div>
+            <div style="display:flex; gap:5px;"><input type="text" class="tn" placeholder="WDC"><input type="number" class="ti"></div>
         </div>
-
-        <button class="btn-main" onclick="save()">💾 儲存並啟動 Memory 監控</button>
+        <button class="btn-main" onclick="save()">💾 儲存並開始強效監控</button>
     </div>
-
     <div id="list"></div>
 
 <script>
     function nCDF(x){var t=1/(1+0.2315419*Math.abs(x));var d=0.3989423*Math.exp(-x*x/2);var p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return(x>0)?(1-p):p;}
     function getP(S,H,v,d){if(!S||!H||S>=H)return 100;var T=d/365,sig=v/100;var d2=(Math.log(H/S)-(-0.5*sig*sig)*T)/(sig*Math.sqrt(T));return(2*(1-nCDF(d2))*100).toFixed(1);}
 
-    let db = JSON.parse(localStorage.getItem('fcn_memory_v11_db') || '[]');
+    let db = JSON.parse(localStorage.getItem('fcn_v12_db') || '[]');
 
     async function save() {
         const tn = document.querySelectorAll('.tn'), ti = document.querySelectorAll('.ti');
         let ts = [];
-        tn.forEach((n, i) => { if(n.value) ts.push({ n: n.value.toUpperCase(), i: ti[i].value, c: 0, p: 0, m_ok: false }); });
+        tn.forEach((n, i) => { if(n.value) ts.push({ n: n.value.trim().toUpperCase(), i: ti[i].value, c: 0, p: 0, m_ok: false }); });
         db.push({ id: Date.now(), c: document.getElementById('c').value, k: document.getElementById('k').value, s: document.getElementById('s').value, ki: document.getElementById('ki').value, rate: document.getElementById('rate').value, m: document.getElementById('mDate').value, o: document.getElementById('obs').value, ts: ts });
-        localStorage.setItem('fcn_memory_v11_db', JSON.stringify(db));
+        localStorage.setItem('fcn_v12_db', JSON.stringify(db));
         location.reload();
     }
 
@@ -78,58 +63,41 @@
         
         for (let t of order.ts) {
             try {
-                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${t.n}?interval=1d&range=1d`);
+                // 加入隨機參數避免快取問題
+                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${t.n}?interval=1d&range=1d&t=${Date.now()}`);
                 const data = await res.json();
                 const q = data.chart.result[0].indicators.quote[0];
-                t.c = (q.close[0] || q.open[0]).toFixed(2); // 抓收盤價
+                const lastPrice = q.close[q.close.length - 1] || q.open[q.open.length - 1];
+                t.c = lastPrice.toFixed(2);
                 
                 const kP = t.i * (order.k / 100);
                 const oS = new Date(order.o); oS.setHours(0,0,0,0);
-                
-                // 記憶機制邏輯：一旦達標終身綠色
-                if (t.m_ok || (today >= oS && parseFloat(t.c) >= kP)) {
-                    t.m_ok = true;
-                    t.p = 100;
-                } else {
-                    t.p = getP(t.c, kP, 30, days);
-                }
-            } catch(e) { t.c = "---"; }
+                if (t.m_ok || (today >= oS && parseFloat(t.c) >= kP)) { t.m_ok = true; t.p = 100; }
+                else { t.p = getP(t.c, kP, 30, days); }
+            } catch(e) { t.c = "連線中.."; }
         }
-        localStorage.setItem('fcn_memory_v11_db', JSON.stringify(db));
+        localStorage.setItem('fcn_v12_db', JSON.stringify(db));
         render();
     }
 
     function render() {
-        db.sort((a,b) => Math.max(...b.ts.map(t=>t.p)) - Math.max(...a.ts.map(t=>t.p)));
-        document.getElementById('list').innerHTML = db.map(o => {
-            const isAllKO = o.ts.every(t => t.m_ok);
-            const maxP = Math.max(...o.ts.map(t => t.p));
-            return `
-            <div class="card ${isAllKO ? 'alert-card' : (maxP > 80 ? 'warning-card' : '')}">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <strong>👤 ${o.c}</strong><br>
-                        <small style="color:#94a3b8;">利率: ${o.rate}% | 到期: ${o.m}</small>
-                    </div>
-                    <button class="refresh-btn" onclick="refreshOne(${o.id})">🔄 抓收盤價</button>
+        document.getElementById('list').innerHTML = db.map(o => `
+            <div class="card ${o.ts.every(t=>t.m_ok) ? 'alert-card' : ''}">
+                <div style="display:flex; justify-content:space-between">
+                    <div><strong>👤 ${o.c}</strong><br><small style="color:#94a3b8;">利率: ${o.rate}% | 到期: ${o.m}</small></div>
+                    <button class="refresh-btn" onclick="refreshOne(${o.id})">🔄 點此連線</button>
                 </div>
                 ${o.ts.map(t => `
                     <div class="ticker-row">
-                        <span>${t.n}<br>
-                            <span class="badge stk">S: ${(t.i*(o.s/100)).toFixed(1)}</span> 
-                            <span class="badge ki">KI: ${(t.i*(o.ki/100)).toFixed(1)}</span>
-                        </span>
+                        <span>${t.n}<br><span class="badge">S:${(t.i*(o.s/100)).toFixed(1)}</span></span>
                         <span style="text-align:center">收盤: ${t.c || '---'}</span>
-                        <span style="text-align:right;">
-                            ${t.m_ok ? '<span class="lock-status">已記憶鎖定</span>' : '<span style="color:#38bdf8;font-weight:bold;">'+t.p+'%</span>'}
-                        </span>
+                        <span style="text-align:right;">${t.m_ok ? '<span class="lock-status">已記憶</span>' : t.p+'%'}</span>
                     </div>
                 `).join('')}
-                <button class="del-btn" onclick="rem(${o.id})">🗑️ 刪除合約</button>
-            </div>`;
-        }).join('');
+                <button style="background:none;border:none;color:#475569;font-size:10px;text-decoration:underline;margin-top:10px;width:100%;text-align:right" onclick="rem(${o.id})">🗑️ 刪除</button>
+            </div>`).join('');
     }
-    function rem(id){ if(confirm('確定刪除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_memory_v11_db', JSON.stringify(db)); render(); }}
+    function rem(id){ if(confirm('刪除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_v12_db', JSON.stringify(db)); render(); }}
     render();
 </script>
 </body>
