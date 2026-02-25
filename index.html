@@ -3,36 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FCN Predator</title>
+    <title>FCN Monitor</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Predator">
+    <meta name="apple-mobile-web-app-title" content="FCN Monitor">
     
     <style>
         :root { --primary: #38bdf8; --bg: #0b1120; --card: #1e293b; --accent: #10b981; }
         body { background: var(--bg); color: #f1f5f9; font-family: -apple-system, sans-serif; padding: 12px; margin: 0; padding-top: env(safe-area-inset-top); }
-        h2 { color: var(--primary); text-align: center; letter-spacing: 3px; margin: 20px 0; font-style: italic; text-shadow: 0 0 10px rgba(56,189,248,0.3); }
-        .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 15px; border: 1px solid #334155; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        h2 { color: var(--primary); text-align: center; letter-spacing: 2px; margin: 20px 0; font-weight: 300; }
+        .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 15px; border: 1px solid #334155; position: relative; }
         .alert-card { border: 2px solid var(--accent); background: #064e3b; }
-        label { display: block; font-size: 12px; color: var(--primary); margin-bottom: 4px; margin-top: 10px; font-weight: bold; text-transform: uppercase; }
+        label { display: block; font-size: 12px; color: var(--primary); margin-bottom: 4px; margin-top: 10px; font-weight: bold; }
         input { background: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--primary); }
-        .btn-main { background: var(--primary); color: #0b1120; border: none; padding: 18px; border-radius: 12px; font-weight: 900; width: 100%; cursor: pointer; font-size: 18px; margin-top: 20px; transition: 0.2s; }
-        .btn-main:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-main { background: var(--primary); color: #0b1120; border: none; padding: 18px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; font-size: 18px; margin-top: 20px; }
         .ticker-row { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 8px; padding: 15px 0; border-bottom: 1px solid #334155; font-size: 13px; align-items: center; }
         .badge { font-size: 10px; padding: 2px 6px; border-radius: 5px; border: 1px solid #475569; color: #94a3b8; display: inline-block; margin-top: 4px; }
         .badge.ki { border-color: #f87171; color: #f87171; }
         .refresh-btn { background: var(--primary); color: #0b1120; border: none; font-size: 11px; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .lock-status { color: var(--accent); font-weight: 900; font-size: 14px; text-shadow: 0 0 5px rgba(16,185,129,0.3); }
+        .lock-status { color: var(--accent); font-weight: bold; font-size: 14px; }
         .del-btn { background: none; border: none; color: #475569; font-size: 11px; text-decoration: underline; margin-top: 15px; width: 100%; text-align: right; }
     </style>
 </head>
 <body>
-    <h2>🦅 FCN PREDATOR</h2>
+    <h2>📊 FCN MONITOR</h2>
     
     <div class="card">
-        <strong style="font-size:16px;">➕ 新增掠食目標</strong>
-        <label>客戶與編號</label><input type="text" id="c" placeholder="邱姐 DSNT66029">
+        <strong style="font-size:16px;">➕ 錄入監控目標</strong>
+        <label>客戶與編號</label><input type="text" id="c" placeholder="例如：邱姐 DSNT66029">
         <div style="display:flex; gap:8px;">
             <div style="flex:1"><label>KO %</label><input type="number" id="k" value="95"></div>
             <div style="flex:1"><label>STRIKE %</label><input type="number" id="s" value="75"></div>
@@ -46,13 +44,13 @@
         
         <div style="background:#0f172a; padding:12px; border-radius:10px; margin-top:15px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:8px; font-size:10px; color:#94a3b8; text-align:center;">
-                <span>代碼</span><span>期初價</span><span>SIGMA %</span>
+                <span>標的</span><span>期初價</span><span>SIGMA %</span>
             </div>
             <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="MU"><input type="number" class="ti"><input type="number" class="tv" placeholder="72"></div>
             <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="TSLA"><input type="number" class="ti"><input type="number" class="tv" placeholder="49"></div>
             <div style="display:flex; gap:5px;"><input type="text" class="tn" placeholder="NVDA"><input type="number" class="ti"><input type="number" class="tv" placeholder="40"></div>
         </div>
-        <button class="btn-main" onclick="save()">💾 儲存並獵殺</button>
+        <button class="btn-main" onclick="save()">💾 儲存監控</button>
     </div>
     <div id="list"></div>
 
@@ -60,14 +58,14 @@
     function nCDF(x){var t=1/(1+0.2315419*Math.abs(x));var d=0.3989423*Math.exp(-x*x/2);var p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return(x>0)?(1-p):p;}
     function getP(S,H,v,d){if(!S||!H||S>=H)return 100;var T=d/365,sig=v/100;var d2=(Math.log(H/S)-(-0.5*sig*sig)*T)/(sig*Math.sqrt(T));return(2*(1-nCDF(d2))*100).toFixed(1);}
 
-    let db = JSON.parse(localStorage.getItem('fcn_predator_final_db') || '[]');
+    let db = JSON.parse(localStorage.getItem('fcn_monitor_db') || '[]');
 
     async function save() {
         const tn = document.querySelectorAll('.tn'), ti = document.querySelectorAll('.ti'), tv = document.querySelectorAll('.tv');
         let ts = [];
         tn.forEach((n, i) => { if(n.value) ts.push({ n: n.value.trim().toUpperCase(), i: ti[i].value, v: tv[i].value || 40, c: 0, p: 0, m_ok: false }); });
         db.push({ id: Date.now(), c: document.getElementById('c').value, k: document.getElementById('k').value, s: document.getElementById('s').value, ki: document.getElementById('ki').value, rate: document.getElementById('rate').value, m: document.getElementById('mDate').value, o: document.getElementById('obs').value, ts: ts });
-        localStorage.setItem('fcn_predator_final_db', JSON.stringify(db));
+        localStorage.setItem('fcn_monitor_db', JSON.stringify(db));
         location.reload();
     }
 
@@ -89,28 +87,28 @@
                 else { t.p = getP(t.c, kP, t.v, days); }
             } catch(e) { t.c = "OFFLINE"; }
         }
-        localStorage.setItem('fcn_predator_final_db', JSON.stringify(db));
+        localStorage.setItem('fcn_monitor_db', JSON.stringify(db));
         render();
     }
 
     function render() {
         document.getElementById('list').innerHTML = db.map(o => `
             <div class="card ${o.ts.every(t=>t.m_ok) ? 'alert-card' : ''}">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div><strong>👤 ${o.c}</strong><br><small style="color:#94a3b8;">${o.rate}% | 到期: ${o.m}</small></div>
-                    <button class="refresh-btn" onclick="refreshOne(${o.id})">⚡ 捕捉</button>
+                    <button class="refresh-btn" onclick="refreshOne(${o.id})">⚡ 更新</button>
                 </div>
                 ${o.ts.map(t => `
                     <div class="ticker-row">
                         <span>${t.n}<br><span class="badge">S:${(t.i*(o.s/100)).toFixed(1)}</span> <span class="badge ki">KI:${(t.i*(o.ki/100)).toFixed(1)}</span></span>
                         <span style="text-align:center">現價: ${t.c || '---'}</span>
-                        <span style="text-align:right;">${t.m_ok ? '<span class="lock-status">已鎖定</span>' : '<span style="color:var(--primary);font-weight:bold;">'+t.p+'%</span>'}</span>
+                        <span style="text-align:right;">${t.m_ok ? '<span class="lock-status">已記憶鎖定</span>' : '<span style="color:var(--primary);font-weight:bold;">'+t.p+'%</span>'}</span>
                     </div>
                 `).join('')}
                 <button class="del-btn" onclick="rem(${o.id})">🗑️ 移除</button>
             </div>`).join('');
     }
-    function rem(id){ if(confirm('移除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_predator_final_db', JSON.stringify(db)); render(); }}
+    function rem(id){ if(confirm('移除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_monitor_db', JSON.stringify(db)); render(); }}
     render();
 </script>
 </body>
