@@ -4,30 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FCN Monitor</title>
+    
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/240/bullish.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FCN Monitor">
+
     <style>
-        :root { --primary: #38bdf8; --bg: #0b1120; --card: #1e293b; --accent: #10b981; }
+        :root { --primary: #38bdf8; --bg: #0b1120; --card: #1e293b; --accent: #10b981; --ki: #f87171; }
         body { background: var(--bg); color: #f1f5f9; font-family: -apple-system, sans-serif; padding: 12px; margin: 0; padding-top: env(safe-area-inset-top); }
-        h2 { color: var(--primary); text-align: center; letter-spacing: 2px; margin: 20px 0; font-weight: 300; }
-        .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 15px; border: 1px solid #334155; position: relative; }
-        .alert-card { border: 2px solid var(--accent); background: #064e3b; }
-        label { display: block; font-size: 12px; color: var(--primary); margin-bottom: 4px; margin-top: 10px; font-weight: bold; }
-        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
-        .btn-main { background: var(--primary); color: #0b1120; border: none; padding: 18px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; font-size: 18px; margin-top: 20px; }
-        .ticker-row { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 8px; padding: 15px 0; border-bottom: 1px solid #334155; font-size: 13px; align-items: center; }
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 5px; border: 1px solid #475569; color: #94a3b8; display: inline-block; margin-top: 4px; }
-        .badge.ki { border-color: #f87171; color: #f87171; }
-        .refresh-btn { background: var(--primary); color: #0b1120; border: none; font-size: 11px; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .lock-status { color: var(--accent); font-weight: bold; font-size: 14px; }
-        .del-btn { background: none; border: none; color: #475569; font-size: 11px; text-decoration: underline; margin-top: 15px; width: 100%; text-align: right; }
+        h2 { color: var(--primary); text-align: center; letter-spacing: 4px; margin: 25px 0; font-weight: 200; border-bottom: 1px solid #1e293b; padding-bottom: 15px; }
+        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+        .alert-card { border: 2px solid var(--accent); background: linear-gradient(145deg, #064e3b, #1e293b); }
+        label { display: block; font-size: 11px; color: var(--primary); margin-bottom: 5px; margin-top: 12px; font-weight: bold; opacity: 0.8; }
+        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--primary); outline: none; background: #1e293b; }
+        .btn-main { background: linear-gradient(90deg, #0ea5e9, #38bdf8); color: #0b1120; border: none; padding: 18px; border-radius: 15px; font-weight: 800; width: 100%; cursor: pointer; font-size: 18px; margin-top: 20px; box-shadow: 0 4px 14px 0 rgba(56, 189, 248, 0.3); }
+        .ticker-row { padding: 15px 0; border-bottom: 1px solid #334155; }
+        .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+        .badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #475569; color: #94a3b8; background: #0f172a; }
+        .badge b { color: #f1f5f9; margin-left: 3px; }
+        .refresh-btn { background: #38bdf8; color: #0b1120; border: none; font-size: 12px; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 800; }
+        .lock-status { color: var(--accent); font-weight: 900; font-size: 14px; letter-spacing: 1px; }
+        .del-btn { background: none; border: none; color: #475569; font-size: 10px; text-decoration: underline; margin-top: 12px; width: 100%; text-align: right; }
     </style>
 </head>
 <body>
-    <h2>📊 FCN MONITOR</h2>
+    <h2>FCN MONITOR</h2>
     <div class="card">
-        <strong style="font-size:16px;">➕ 錄入監控目標</strong>
-        <label>客戶與編號</label><input type="text" id="c" placeholder="例如：蕭醫師">
+        <strong>➕ 錄入監控目標</strong>
+        <label>客戶名稱 / 編號</label><input type="text" id="c" placeholder="例如：蕭醫師">
         <div style="display:flex; gap:8px;">
             <div style="flex:1"><label>KO %</label><input type="number" id="k" value="100"></div>
             <div style="flex:1"><label>STRIKE %</label><input type="number" id="s" value="75"></div>
@@ -37,87 +43,81 @@
             <div style="flex:1"><label>利率 %</label><input type="number" id="rate"></div>
             <div style="flex:1"><label>到期日</label><input type="date" id="mDate"></div>
         </div>
-        <label>比價起始日 (Memory Start)</label><input type="date" id="obs">
-        <div style="background:#0f172a; padding:12px; border-radius:10px; margin-top:15px;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:8px; font-size:10px; color:#94a3b8; text-align:center;">
-                <span>標的</span><span>期初價</span><span>SIGMA %</span>
+        <label>比價起始日 (翻舊帳起點)</label><input type="date" id="obs">
+        <div style="background:#0f172a; padding:12px; border-radius:10px; margin-top:10px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px; font-size:10px; color:#94a3b8;">
+                <span>標的代碼</span><span>期初價格</span>
             </div>
-            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="COIN"><input type="number" class="ti"><input type="number" class="tv" value="40"></div>
-            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="TSLA"><input type="number" class="ti"><input type="number" class="tv" value="49"></div>
-            <div style="display:flex; gap:5px;"><input type="text" class="tn" placeholder="VST"><input type="number" class="ti"><input type="number" class="tv" value="49"></div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="COIN"><input type="number" class="ti"></div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="TSLA"><input type="number" class="ti"></div>
+            <div style="display:flex; gap:5px;"><input type="text" class="tn" placeholder="VST"><input type="number" class="ti"></div>
         </div>
-        <button class="btn-main" onclick="save()">💾 儲存並檢查歷史紀錄</button>
+        <button class="btn-main" onclick="save()">💾 儲存合約</button>
     </div>
     <div id="list"></div>
 
 <script>
-    function nCDF(x){var t=1/(1+0.2315419*Math.abs(x));var d=0.3989423*Math.exp(-x*x/2);var p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return(x>0)?(1-p):p;}
-    function getP(S,H,v,d){if(!S||!H||S>=H)return 100;var T=d/365,sig=v/100;var d2=(Math.log(H/S)-(-0.5*sig*sig)*T)/(sig*Math.sqrt(T));return(2*(1-nCDF(d2))*100).toFixed(1);}
-
-    let db = JSON.parse(localStorage.getItem('fcn_monitor_v19_db') || '[]');
+    let db = JSON.parse(localStorage.getItem('fcn_monitor_v22_db') || '[]');
 
     async function save() {
-        const tn = document.querySelectorAll('.tn'), ti = document.querySelectorAll('.ti'), tv = document.querySelectorAll('.tv');
+        const tn = document.querySelectorAll('.tn'), ti = document.querySelectorAll('.ti');
         let ts = [];
-        tn.forEach((n, i) => { if(n.value) ts.push({ n: n.value.trim().toUpperCase(), i: ti[i].value, v: tv[i].value || 40, c: 0, p: 0, m_ok: false }); });
+        tn.forEach((n, i) => { if(n.value) ts.push({ n: n.value.trim().toUpperCase(), i: parseFloat(ti[i].value), c: 0, m_ok: false }); });
         db.push({ id: Date.now(), c: document.getElementById('c').value, k: document.getElementById('k').value, s: document.getElementById('s').value, ki: document.getElementById('ki').value, rate: document.getElementById('rate').value, m: document.getElementById('mDate').value, o: document.getElementById('obs').value, ts: ts });
-        localStorage.setItem('fcn_monitor_v19_db', JSON.stringify(db));
+        localStorage.setItem('fcn_monitor_v22_db', JSON.stringify(db));
         location.reload();
     }
 
     async function refreshOne(id) {
         const order = db.find(x => x.id === id);
-        const startTime = Math.floor(new Date(order.o).getTime() / 1000); // 轉為 Unix 時間戳
-        const today = new Date(); today.setHours(0,0,0,0);
-        const days = Math.max(1, (new Date(order.m) - today)/86400000);
-        
+        const startTime = Math.floor(new Date(order.o).getTime() / 1000);
         for (let t of order.ts) {
             try {
-                // 抓取自比價起始日以來的所有日 K 線資料
                 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${t.n}?period1=${startTime}&period2=${Math.floor(Date.now()/1000)}&interval=1d`)}`;
                 const res = await fetch(proxyUrl);
                 const json = await res.json();
                 const data = JSON.parse(json.contents);
                 const quotes = data.chart.result[0].indicators.quote[0];
-                
-                // 找出這段時間內的最高收盤價
                 const historicalCloses = quotes.close.filter(c => c != null);
                 const maxClose = Math.max(...historicalCloses);
-                const currentPrice = historicalCloses[historicalCloses.length - 1];
-                
-                t.c = currentPrice.toFixed(2);
+                t.c = historicalCloses[historicalCloses.length - 1].toFixed(2);
                 const kP = t.i * (order.k / 100);
-                
-                // 翻舊帳：只要歷史收盤曾經 >= KO 價，就鎖定！
-                if (t.m_ok || maxClose >= kP) { 
-                    t.m_ok = true; t.p = 100; 
-                } else {
-                    t.p = getP(t.c, kP, t.v, days);
-                }
-            } catch(e) { t.c = "抓取失敗"; }
+                if (t.m_ok || maxClose >= kP) { t.m_ok = true; }
+            } catch(e) { t.c = "ERR"; }
         }
-        localStorage.setItem('fcn_monitor_v19_db', JSON.stringify(db));
+        localStorage.setItem('fcn_monitor_v22_db', JSON.stringify(db));
         render();
     }
 
     function render() {
         document.getElementById('list').innerHTML = db.map(o => `
             <div class="card ${o.ts.every(t=>t.m_ok) ? 'alert-card' : ''}">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><strong>👤 ${o.c}</strong><br><small style="color:#94a3b8;">${o.rate}% | 到期: ${o.m}</small></div>
-                    <button class="refresh-btn" onclick="refreshOne(${o.id})">⚡ 翻舊帳更新</button>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div><strong>👤 ${o.c}</strong><br><small style="color:#94a3b8;">利率: ${o.rate}% | 到期: ${o.m}</small></div>
+                    <button class="refresh-btn" onclick="refreshOne(${o.id})">⚡ 檢查記憶</button>
                 </div>
-                ${o.ts.map(t => `
+                ${o.ts.map(t => {
+                    const ko = (t.i * (o.k/100)).toFixed(2);
+                    const strike = (t.i * (o.s/100)).toFixed(2);
+                    const ki = (t.i * (o.ki/100)).toFixed(2);
+                    return `
                     <div class="ticker-row">
-                        <span>${t.n}<br><span class="badge">S:${(t.i*(o.s/100)).toFixed(1)}</span> <span class="badge ki">KI:${(t.i*(o.ki/100)).toFixed(1)}</span></span>
-                        <span style="text-align:center">現價: ${t.c || '---'}</span>
-                        <span style="text-align:right;">${t.m_ok ? '<span class="lock-status">已鎖定</span>' : '<span style="color:var(--primary);font-weight:bold;">'+t.p+'%</span>'}</span>
-                    </div>
-                `).join('')}
-                <button class="del-btn" onclick="rem(${o.id})">🗑️ 移除</button>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="font-size:18px; font-weight:bold; color:var(--primary);">${t.n}</span>
+                            <span>${t.m_ok ? '<span class="lock-status">● 已記憶鎖定</span>' : '<span style="color:#94a3b8;">現價: '+ (t.c || '---') +'</span>'}</span>
+                        </div>
+                        <div class="price-grid">
+                            <span class="badge">期初: <b>${t.i}</b></span>
+                            <span class="badge">KO (${o.k}%): <b>${ko}</b></span>
+                            <span class="badge">執行 (${o.s}%): <b>${strike}</b></span>
+                            <span class="badge" style="border-color:var(--ki); color:var(--ki);">KI (${o.ki}%): <b>${ki}</b></span>
+                        </div>
+                    </div>`;
+                }).join('')}
+                <button class="del-btn" onclick="rem(${o.id})">🗑️ 移除此合約</button>
             </div>`).join('');
     }
-    function rem(id){ if(confirm('移除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_monitor_v19_db', JSON.stringify(db)); render(); }}
+    function rem(id){ if(confirm('移除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_monitor_v22_db', JSON.stringify(db)); render(); }}
     render();
 </script>
 </body>
