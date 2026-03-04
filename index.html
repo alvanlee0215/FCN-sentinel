@@ -4,40 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FCN Monitor</title>
-    
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/240/bullish.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FCN Monitor">
-
     <style>
-        :root { --primary: #38bdf8; --bg: #0b1120; --card: #1e293b; --accent: #10b981; --ki: #f87171; }
+        :root { --primary: #38bdf8; --bg: #0b1120; --card: #1e293b; --accent: #10b981; --ki: #f87171; --gold: #fbbf24; }
         body { background: var(--bg); color: #f1f5f9; font-family: -apple-system, sans-serif; padding: 12px; margin: 0; padding-top: env(safe-area-inset-top); }
-        h2 { color: var(--primary); text-align: center; letter-spacing: 4px; margin: 25px 0; font-weight: 200; border-bottom: 1px solid #1e293b; padding-bottom: 15px; }
-        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
-        .alert-card { border: 2px solid var(--accent); background: linear-gradient(145deg, #064e3b, #1e293b); }
-        label { display: block; font-size: 11px; color: var(--primary); margin-bottom: 5px; margin-top: 12px; font-weight: bold; opacity: 0.8; }
-        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: var(--primary); outline: none; background: #1e293b; }
-        .btn-main { background: linear-gradient(90deg, #0ea5e9, #38bdf8); color: #0b1120; border: none; padding: 18px; border-radius: 15px; font-weight: 800; width: 100%; cursor: pointer; font-size: 18px; margin-top: 20px; box-shadow: 0 4px 14px 0 rgba(56, 189, 248, 0.3); }
-        .ticker-row { padding: 15px 0; border-bottom: 1px solid #334155; }
-        .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
-        .badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #475569; color: #94a3b8; background: #0f172a; }
-        .badge b { color: #f1f5f9; margin-left: 3px; }
-        .refresh-btn { background: #38bdf8; color: #0b1120; border: none; font-size: 12px; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 800; }
-        .lock-status { color: var(--accent); font-weight: 900; font-size: 14px; letter-spacing: 1px; }
+        h2 { color: var(--primary); text-align: center; letter-spacing: 4px; margin: 20px 0 10px 0; font-weight: 200; }
+        .top-nav { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-refresh-all { flex: 1; background: #1e293b; color: var(--primary); border: 1px solid var(--primary); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        
+        .card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid #334155; position: relative; transition: 0.3s; }
+        /* 全部 KO 置頂樣式 */
+        .ko-complete { border: 2px solid var(--gold); background: linear-gradient(145deg, #1e293b, #451a03); order: -1; }
+        .ko-badge { position: absolute; top: 10px; right: 10px; color: var(--gold); font-size: 12px; font-weight: bold; }
+        
+        label { display: block; font-size: 11px; color: var(--primary); margin-bottom: 4px; margin-top: 10px; font-weight: bold; }
+        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 10px; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
+        .btn-main { background: linear-gradient(90deg, #0ea5e9, #38bdf8); color: #0b1120; border: none; padding: 16px; border-radius: 15px; font-weight: 800; width: 100%; cursor: pointer; font-size: 17px; margin-top: 15px; }
+        
+        .ticker-row { padding: 12px 0; border-bottom: 1px solid #334155; }
+        .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+        .badge { font-size: 10px; padding: 4px; border-radius: 6px; border: 1px solid #475569; color: #94a3b8; background: #0f172a; }
+        .badge b { color: #f1f5f9; }
+        
+        /* KI 預警閃爍 */
+        @keyframes blink { 50% { opacity: 0.3; } }
+        .ki-warning { color: var(--ki) !important; font-weight: 900 !important; animation: blink 1s linear infinite; }
+        
+        .lock-status { color: var(--accent); font-weight: 900; font-size: 13px; }
         .del-btn { background: none; border: none; color: #475569; font-size: 10px; text-decoration: underline; margin-top: 12px; width: 100%; text-align: right; }
+        #list { display: flex; flex-direction: column; }
     </style>
 </head>
 <body>
     <h2>FCN MONITOR</h2>
+    <div class="top-nav">
+        <button class="btn-refresh-all" onclick="refreshAll()">🔄 一鍵刷新所有案號</button>
+    </div>
+
     <div class="card">
-        <strong>➕ 錄入監控目標</strong>
+        <strong>➕ 新增合約</strong>
         <label>客戶名稱 / 編號</label><input type="text" id="c" placeholder="例如：蕭醫師">
         <div style="display:flex; gap:8px;">
-            <div style="flex:1"><label>KO %</label><input type="number" id="k" value="100"></div>
-            <div style="flex:1"><label>STRIKE %</label><input type="number" id="s" value="75"></div>
-            <div style="flex:1"><label>KI %</label><input type="number" id="ki" value="55"></div>
+            <div style="flex:1"><label>KO %</label><input type="number" id="k" placeholder="100"></div>
+            <div style="flex:1"><label>STRIKE %</label><input type="number" id="s" placeholder="75"></div>
+            <div style="flex:1"><label>KI %</label><input type="number" id="ki" placeholder="55"></div>
         </div>
         <div style="display:flex; gap:10px;">
             <div style="flex:1"><label>利率 %</label><input type="number" id="rate"></div>
@@ -45,27 +57,29 @@
         </div>
         <label>比價起始日 (翻舊帳起點)</label><input type="date" id="obs">
         <div style="background:#0f172a; padding:12px; border-radius:10px; margin-top:10px;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px; font-size:10px; color:#94a3b8;">
-                <span>標的代碼</span><span>期初價格</span>
-            </div>
-            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="COIN"><input type="number" class="ti"></div>
-            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="TSLA"><input type="number" class="ti"></div>
-            <div style="display:flex; gap:5px;"><input type="text" class="tn" placeholder="VST"><input type="number" class="ti"></div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="代碼"><input type="number" class="ti" placeholder="期初價"></div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" class="tn" placeholder="代碼"><input type="number" class="ti" placeholder="期初價"></div>
+            <div style="display:flex; gap:5px;"><input type="text" class="tn" placeholder="代碼"><input type="number" class="ti" placeholder="期初價"></div>
         </div>
-        <button class="btn-main" onclick="save()">💾 儲存合約</button>
+        <button class="btn-main" onclick="save()">💾 儲存並開始監控</button>
     </div>
     <div id="list"></div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('fcn_monitor_v22_db') || '[]');
+    let db = JSON.parse(localStorage.getItem('fcn_monitor_v23_db') || '[]');
 
     async function save() {
         const tn = document.querySelectorAll('.tn'), ti = document.querySelectorAll('.ti');
         let ts = [];
         tn.forEach((n, i) => { if(n.value) ts.push({ n: n.value.trim().toUpperCase(), i: parseFloat(ti[i].value), c: 0, m_ok: false }); });
         db.push({ id: Date.now(), c: document.getElementById('c').value, k: document.getElementById('k').value, s: document.getElementById('s').value, ki: document.getElementById('ki').value, rate: document.getElementById('rate').value, m: document.getElementById('mDate').value, o: document.getElementById('obs').value, ts: ts });
-        localStorage.setItem('fcn_monitor_v22_db', JSON.stringify(db));
+        localStorage.setItem('fcn_monitor_v23_db', JSON.stringify(db));
         location.reload();
+    }
+
+    async function refreshAll() {
+        const btns = document.querySelectorAll('.refresh-btn-single');
+        for (let btn of btns) { await btn.click(); }
     }
 
     async function refreshOne(id) {
@@ -79,45 +93,57 @@
                 const data = JSON.parse(json.contents);
                 const quotes = data.chart.result[0].indicators.quote[0];
                 const historicalCloses = quotes.close.filter(c => c != null);
-                const maxClose = Math.max(...historicalCloses);
                 t.c = historicalCloses[historicalCloses.length - 1].toFixed(2);
                 const kP = t.i * (order.k / 100);
-                if (t.m_ok || maxClose >= kP) { t.m_ok = true; }
+                if (t.m_ok || Math.max(...historicalCloses) >= kP) { t.m_ok = true; }
             } catch(e) { t.c = "ERR"; }
         }
-        localStorage.setItem('fcn_monitor_v22_db', JSON.stringify(db));
+        localStorage.setItem('fcn_monitor_v23_db', JSON.stringify(db));
         render();
     }
 
     function render() {
-        document.getElementById('list').innerHTML = db.map(o => `
-            <div class="card ${o.ts.every(t=>t.m_ok) ? 'alert-card' : ''}">
+        // 排序邏輯：全部 KO 的置頂
+        const sortedDb = [...db].sort((a, b) => {
+            const aDone = a.ts.every(t => t.m_ok) ? 1 : 0;
+            const bDone = b.ts.every(t => t.m_ok) ? 1 : 0;
+            return bDone - aDone;
+        });
+
+        document.getElementById('list').innerHTML = sortedDb.map(o => {
+            const isAllKO = o.ts.every(t => t.m_ok);
+            return `
+            <div class="card ${isAllKO ? 'ko-complete' : ''}">
+                ${isAllKO ? '<div class="ko-badge">🏆 已全部 KO 置頂</div>' : ''}
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div><strong>👤 ${o.c}</strong><br><small style="color:#94a3b8;">利率: ${o.rate}% | 到期: ${o.m}</small></div>
-                    <button class="refresh-btn" onclick="refreshOne(${o.id})">⚡ 檢查記憶</button>
+                    <div><strong>👤 ${o.c}</strong><br><small style="color:#94a3b8;">${o.rate}% | 到期: ${o.m}</small></div>
+                    <button class="refresh-btn-single" style="display:none" onclick="refreshOne(${o.id})"></button>
+                    <button class="btn-refresh-all" style="flex:none; width:auto; padding:8px 12px;" onclick="refreshOne(${o.id})">⚡ 更新</button>
                 </div>
                 ${o.ts.map(t => {
                     const ko = (t.i * (o.k/100)).toFixed(2);
                     const strike = (t.i * (o.s/100)).toFixed(2);
                     const ki = (t.i * (o.ki/100)).toFixed(2);
+                    const isNearKI = !t.m_ok && t.c > 0 && (t.c <= ki * 1.05); // 現價接近 KI 5% 以內
                     return `
                     <div class="ticker-row">
                         <div style="display:flex; justify-content:space-between;">
-                            <span style="font-size:18px; font-weight:bold; color:var(--primary);">${t.n}</span>
+                            <span style="font-size:17px; font-weight:bold;" class="${isNearKI ? 'ki-warning' : ''}">${t.n} ${isNearKI ? '⚠️' : ''}</span>
                             <span>${t.m_ok ? '<span class="lock-status">● 已記憶鎖定</span>' : '<span style="color:#94a3b8;">現價: '+ (t.c || '---') +'</span>'}</span>
                         </div>
                         <div class="price-grid">
                             <span class="badge">期初: <b>${t.i}</b></span>
-                            <span class="badge">KO (${o.k}%): <b>${ko}</b></span>
-                            <span class="badge">執行 (${o.s}%): <b>${strike}</b></span>
-                            <span class="badge" style="border-color:var(--ki); color:var(--ki);">KI (${o.ki}%): <b>${ki}</b></span>
+                            <span class="badge">KO: <b>${ko}</b></span>
+                            <span class="badge">執行: <b>${strike}</b></span>
+                            <span class="badge" style="border-color:var(--ki); color:var(--ki);">KI: <b>${ki}</b></span>
                         </div>
                     </div>`;
                 }).join('')}
-                <button class="del-btn" onclick="rem(${o.id})">🗑️ 移除此合約</button>
-            </div>`).join('');
+                <button class="del-btn" onclick="rem(${o.id})">🗑️ 移除</button>
+            </div>`;
+        }).join('');
     }
-    function rem(id){ if(confirm('移除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_monitor_v22_db', JSON.stringify(db)); render(); }}
+    function rem(id){ if(confirm('移除？')){db=db.filter(x=>x.id!==id); localStorage.setItem('fcn_monitor_v23_db', JSON.stringify(db)); render(); }}
     render();
 </script>
 </body>
